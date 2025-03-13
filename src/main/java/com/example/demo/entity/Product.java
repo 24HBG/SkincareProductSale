@@ -33,4 +33,11 @@ public class Product {
     @JsonIgnore
     List<OrderDetail> orderDetails = new ArrayList<>();
 
+    @ManyToOne
+    @JoinColumn(name = "promotion_id")
+    Promotion promotion;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    List<Review> reviews = new ArrayList<>();
+
 }

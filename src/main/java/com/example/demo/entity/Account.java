@@ -52,6 +52,8 @@ public class Account implements UserDetails {
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
             @JsonIgnore
     List<Blog> blogs = new ArrayList<>();
+    @OneToMany(mappedBy = "account",cascade = CascadeType.ALL)
+    List<Review> reviews = new ArrayList<>();
 
     @Override
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "@class")
