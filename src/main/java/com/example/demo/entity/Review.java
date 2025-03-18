@@ -16,11 +16,14 @@ public class Review {
     @Column(columnDefinition = "TEXT")
     public String comment;
     public LocalDateTime createdAt;
-
+    public boolean isDeleted;
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
     @ManyToOne
     @JoinColumn(name = "account_id")
     Account account;
-
     @ManyToOne
     @JoinColumn(name = "product_id")
     Product product;

@@ -53,7 +53,10 @@ public class Account implements UserDetails {
             @JsonIgnore
     List<Blog> blogs = new ArrayList<>();
     @OneToMany(mappedBy = "account",cascade = CascadeType.ALL)
+            @JsonIgnore
     List<Review> reviews = new ArrayList<>();
+    @OneToMany(mappedBy = "createdBy",cascade = CascadeType.ALL)
+    List<DashBoard> dashBoards = new ArrayList<>();
 
     @Override
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "@class")

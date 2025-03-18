@@ -1,16 +1,19 @@
 package com.example.demo.mapper;
 
-import com.example.demo.entity.Category;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.request.ProductRequest;
-import com.example.demo.repository.CategoryRepository;
+
 import org.modelmapper.PropertyMap;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.LocalDateTime;
+
 
 public class ProductMapper extends PropertyMap<ProductRequest, Product> {
 
     @Override
     protected void configure() {
         map().setId(0);
+        map().setUpdateAt(LocalDateTime.now());
+        map().setCreatedAt(LocalDateTime.now());
     }
 }

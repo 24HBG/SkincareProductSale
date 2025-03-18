@@ -1,24 +1,24 @@
 package com.example.demo.entity.request;
 
+import com.example.demo.enums.SkinTypeEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+
+import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductRequest {
-    public long id = 0;
-    @NotBlank
     public String name;
+    public String description;
     @Min(value = 0)
     public float price;
     @Min(value = 0)
     public int stock;
-    //PD00001
-    @Pattern(regexp = "PD\\d{5}", message = "Code must be PDxxxxx!")
-    @Column(unique = true)
-    public String code;
+    public SkinTypeEnum skinType;
+    public BigDecimal rating;
     @NotNull
     public long categoryId;
 }

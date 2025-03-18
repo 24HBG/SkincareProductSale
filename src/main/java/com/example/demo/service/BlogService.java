@@ -38,4 +38,19 @@ public class BlogService {
         blog.setDeleted(true); // Xóa mềm bằng cách đặt isDeleted = true
         return blogRepository.save(blog);
     }
+
+    public Blog update(long id, BlogRequest blogRequest) {
+        Blog blog = blogRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Blog not found"));
+
+        // Kiểm tra nếu blog đã bị xóa mềm
+        if (blog.isDeleted()) {
+            throw new RuntimeException("Cannot update a deleted blog.");
+        }
+        // Cập nhật thông tin blog
+        blog.setTitle(blogRequest.getTitle());
+        blog.setContent(blogRequest.getContent());
+
+        return blogRepository.save(blog);
+    }
 }

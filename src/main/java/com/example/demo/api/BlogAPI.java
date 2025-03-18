@@ -16,6 +16,7 @@ import java.util.List;
 public class BlogAPI {
     @Autowired
     BlogService blogService;
+
     @GetMapping
     public ResponseEntity<List<Blog>> getAllBlogs() {
         List<Blog> blogs = blogService.getAllBlog();
@@ -34,5 +35,11 @@ public class BlogAPI {
     public ResponseEntity<Blog> deleteBlog(@PathVariable long id) {
         Blog deletedBlog = blogService.delete(id);
         return ResponseEntity.ok(deletedBlog);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Blog> updateBlog(@PathVariable long id,@RequestBody BlogRequest blogRequest) {
+        Blog updatedBlog = blogService.update(id, blogRequest);
+        return ResponseEntity.ok(updatedBlog);
     }
 }

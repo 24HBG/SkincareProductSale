@@ -20,6 +20,7 @@ public class Category {
     public String name;
     public String description;
     public LocalDateTime createdAt;
+    public boolean isDeleted;
     @OneToMany(mappedBy = "category")
     @JsonIgnore
     public List<Product> products = new ArrayList<>();

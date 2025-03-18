@@ -37,4 +37,9 @@ public class ProductAPI {
         Product product = productService.delete(id);
         return ResponseEntity.ok(product);
     }
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable long id, @RequestBody ProductRequest productRequest){
+        Product product = productService.updateProduct(id,productRequest);
+        return ResponseEntity.ok(product);
+    }
 }
