@@ -1,21 +1,27 @@
 package com.example.demo.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
-public class OrderDetail {
+@AllArgsConstructor
+@NoArgsConstructor
+public class CartItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public long id = 0;
+    public Long id;
+
     public Integer quantity;
-    public Double price;
+    public double price;
+    public double subtotal;
+
     @ManyToOne
-    @JoinColumn(name = "order_id")
-    @JsonIgnore
-    Order order;
+    @JoinColumn(name = "cart_id")
+    Cart cart;
+
     @ManyToOne
     @JoinColumn(name = "product_id")
     Product product;

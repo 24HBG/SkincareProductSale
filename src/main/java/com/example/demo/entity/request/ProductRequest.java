@@ -14,7 +14,7 @@ public class ProductRequest {
     public String name;
     public String description;
     @Min(value = 0)
-    public float price;
+    public double price;
     @Min(value = 0)
     public int stock;
     public SkinTypeEnum skinType;

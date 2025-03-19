@@ -26,7 +26,7 @@ public class Product {
     public String name;
     public String description;
     @Min(value = 0)
-    public float price;
+    public Double price;
     @Min(value = 0)
     public int stock;
     public SkinTypeEnum skinType;
@@ -46,7 +46,11 @@ public class Product {
     Promotion promotion;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-            @JsonIgnore
+    @JsonIgnore
     List<Review> reviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonIgnore
+    List<CartItem> cartItems = new ArrayList<>();
 
 }

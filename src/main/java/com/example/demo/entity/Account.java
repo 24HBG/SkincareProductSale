@@ -36,27 +36,30 @@ public class Account implements UserDetails {
     public String email;
     @NotBlank
     public String password;
-    @NotBlank
+
     public String phonenumber;
     @Enumerated(value = EnumType.STRING)
     public SkinTypeEnum skintypeEnum;
-    @NotBlank
     public String address;
     public long point;
     @Enumerated(value = EnumType.STRING)
     public RoleEnum roleEnum;
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
-            @JsonIgnore
+    @JsonIgnore
     List<Order> orders = new ArrayList<>();
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
-            @JsonIgnore
+    @JsonIgnore
     List<Blog> blogs = new ArrayList<>();
-    @OneToMany(mappedBy = "account",cascade = CascadeType.ALL)
-            @JsonIgnore
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+    @JsonIgnore
     List<Review> reviews = new ArrayList<>();
-    @OneToMany(mappedBy = "createdBy",cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL)
     List<DashBoard> dashBoards = new ArrayList<>();
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
+    @JsonIgnore
+    Cart cart;
+
 
     @Override
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "@class")
@@ -76,7 +79,7 @@ public class Account implements UserDetails {
     @Override
     @JsonIgnore
     public String getUsername() {
-        return  this.email;
+        return this.email;
     }
 
     @Override

@@ -8,6 +8,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -18,6 +19,10 @@ public class TokenService {
 
     @Autowired
     AuthenticationRepository authenticationRepository;
+
+
+
+
 
 
     private final String SECRET_KEY = "HT4bb6d1dfbafb64a681139d1586b6f1160d18159afd57c8c79136d7490630407c";
@@ -56,3 +61,5 @@ public class TokenService {
 
 
 }
+
+

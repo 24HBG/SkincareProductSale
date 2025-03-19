@@ -12,7 +12,7 @@ public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long id;
-    public int rating;
+    public Integer rating;
     @Column(columnDefinition = "TEXT")
     public String comment;
     public LocalDateTime createdAt;

@@ -31,6 +31,7 @@ public class AuthenticationService implements UserDetailsService {
     @Autowired
     TokenService tokenService;
 
+
     public Account register(AccountRequest accountRequest) {
         // xử lý logic
 
@@ -39,9 +40,6 @@ public class AuthenticationService implements UserDetailsService {
         account.setEmail(accountRequest.getEmail()); // Dùng email thay vì username
         account.setPassword(passwordEncoder.encode(accountRequest.getPassword()));
         account.setFullName(accountRequest.getFullName());
-        account.setPhonenumber(accountRequest.getPhonenumber());
-        account.setAddress(accountRequest.getAddress());
-        account.setSkintypeEnum(accountRequest.getSkintypeEnum());
         account.setRoleEnum(RoleEnum.CUSTOMER);
         account.setPoint(0); // Mặc định điểm thưởng là 0
 
@@ -64,7 +62,7 @@ public class AuthenticationService implements UserDetailsService {
                             authenticationRequest.getPassword()
                     )
             );
-        } catch (Exception e) {
+        }catch (Exception e){
             throw new NullPointerException("Wrong uername or password");
         }
         Account account = authenticationRepository.findByEmail(authenticationRequest.getEmail()).orElseThrow();
@@ -74,15 +72,32 @@ public class AuthenticationService implements UserDetailsService {
         authenticationResponse.setEmail(account.getEmail());
         authenticationResponse.setId(account.getId());
         authenticationResponse.setFullName(account.getFullName());
-        authenticationResponse.setPhonenumber(account.getPhonenumber());
-        authenticationResponse.setAddress(account.getAddress());
-        authenticationResponse.setSkintypeEnum(account.getSkintypeEnum());
-        authenticationResponse.setPoint(account.getPoint());
         authenticationResponse.setRoleEnum(account.getRoleEnum());
         authenticationResponse.setToken(token);
 
         return authenticationResponse;
     }
+
+
+
+//    public Account updateAccount(long id, AuthenticationRequest authenticationRequest) {
+//        // Tìm tài khoản theo ID
+//        Account account = authenticationRepository.findById(id);
+//        if (account == null) {
+//            throw new NotFoundException("Account not found");
+//        }
+//
+//        // Cập nhật thông tin nếu không null
+//        if (authenticationRequest.getEmail() != null) {
+//            account.setEmail(authenticationRequest.getEmail());
+//        }
+//        if (authenticationRequest.getPassword() != null) {
+//            account.setPassword(passwordEncoder.encode(authenticationRequest.getPassword()));
+//        }
+//
+//        // Lưu thay đổi vào database
+//        return authenticationRepository.save(account);
+//    }
 
 
 }
