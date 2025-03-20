@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import com.example.demo.enums.OrderStatusEnum;
+import com.example.demo.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
@@ -43,10 +44,9 @@ public class Order {
     // ✅ Thông tin thanh toán
     @Column(nullable = false)
     public String paymentMethod;  // "VNPay", "Cash",...
+    @Enumerated(EnumType.STRING)
+    public PaymentStatus paymentStatus; // false: chưa thanh toán, true: đã thanh toán
 
-    public boolean paymentStatus = false; // false: chưa thanh toán, true: đã thanh toán
-
-    public String transactionId; // Mã giao dịch VNPay nếu có
 
     // ✅ Thêm phí vận chuyển
     public float shippingFee = 30000; // Default shipping fee (có thể thay đổi sau)

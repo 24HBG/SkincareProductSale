@@ -4,6 +4,8 @@ import com.example.demo.entity.*;
 import com.example.demo.entity.request.OrderDetailRequest;
 import com.example.demo.entity.request.OrderRequest;
 import com.example.demo.enums.OrderStatusEnum;
+import com.example.demo.enums.PaymentMethod;
+import com.example.demo.enums.PaymentStatus;
 import com.example.demo.repository.DiscountRepository;
 import com.example.demo.repository.OrderRepository;
 import com.example.demo.repository.ProductRepository;
@@ -104,9 +106,17 @@ public class OrderService {
 
         // ✅ Xử lý thanh toán
         if ("VNPay".equalsIgnoreCase(paymentMethod)) {
-            return createURLPayment(newOrder);
+            order.setPaymentMethod("VNPay");
+            order.setPaymentStatus(PaymentStatus.PENDING); // Chờ thanh toán
+            orderRepository.save(order);
+            return createURLPayment(order); // Chuyển hướng đến VNPay
+        } else if ("COD".equalsIgnoreCase(paymentMethod)) {
+            order.setPaymentMethod("COD");
+            order.setPaymentStatus(PaymentStatus.PENDING); // Chờ thanh toán khi giao hàng
+            orderRepository.save(order);
+            return "Đơn hàng đã được tạo thành công. Vui lòng thanh toán khi nhận hàng!";
         } else {
-            return "Đơn hàng đã được tạo thành công. Chờ xác nhận!";
+            throw new RuntimeException("Phương thức thanh toán không hợp lệ.");
         }
     }
 
