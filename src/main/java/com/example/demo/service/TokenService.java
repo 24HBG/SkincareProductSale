@@ -20,11 +20,6 @@ public class TokenService {
     @Autowired
     AuthenticationRepository authenticationRepository;
 
-
-
-
-
-
     private final String SECRET_KEY = "HT4bb6d1dfbafb64a681139d1586b6f1160d18159afd57c8c79136d7490630407c";
 
     private SecretKey getSigninKey(){

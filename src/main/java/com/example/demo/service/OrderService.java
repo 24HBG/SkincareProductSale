@@ -1,12 +1,10 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.Account;
-import com.example.demo.entity.Order;
-import com.example.demo.entity.OrderDetail;
-import com.example.demo.entity.Product;
+import com.example.demo.entity.*;
 import com.example.demo.entity.request.OrderDetailRequest;
 import com.example.demo.entity.request.OrderRequest;
 import com.example.demo.enums.OrderStatusEnum;
+import com.example.demo.repository.DiscountRepository;
 import com.example.demo.repository.OrderRepository;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.utils.AccountUtils;
@@ -23,6 +21,8 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class OrderService {
@@ -34,36 +34,80 @@ public class OrderService {
     ProductRepository productRepository;
 
     @Autowired
+     DiscountRepository discountRepository;
+
+    @Autowired
     ModelMapper modelMapper;
 
     @Autowired
     AccountUtils accountUtils;
 
-    public String create(OrderRequest orderRequest) throws Exception {
+    private static final float SHIPPING_FEE = 30000;
+
+    public String checkout(OrderRequest orderRequest, String paymentMethod, Long discountId) throws Exception {
+        Account account = accountUtils.getCurrentAccount();
+
+        // ✅ Kiểm tra thông tin địa chỉ và số điện thoại từ orderRequest
+        if (orderRequest.getCustomerAddress() == null || orderRequest.getCustomerAddress().trim().isEmpty()) {
+            throw new RuntimeException("Vui lòng nhập địa chỉ giao hàng.");
+        }
+        if (orderRequest.getPhoneNumber() == null || orderRequest.getPhoneNumber().trim().isEmpty()) {
+            throw new RuntimeException("Vui lòng nhập số điện thoại.");
+        }
+
         float total = 0;
         List<OrderDetail> orderDetails = new ArrayList<>();
         Order order = modelMapper.map(orderRequest, Order.class);
         order.setOrderDetails(orderDetails);
-        order.setAccount(accountUtils.getCurrentAccount());
+        order.setAccount(account);
+        order.setStatus(OrderStatusEnum.IN_PROCESS); // Đặt hàng ở trạng thái chờ xác nhận
+
+        // ✅ Gán số điện thoại và địa chỉ vào đơn hàng
+        order.setPhoneNumber(orderRequest.getPhoneNumber());
+        order.setCustomerAddress(orderRequest.getCustomerAddress());
+
         for (OrderDetailRequest orderDetailRequest : orderRequest.getDetails()) {
-            OrderDetail orderDetail = new OrderDetail();
             Product product = productRepository.findProductById(orderDetailRequest.getProductId());
             if (product.getStock() >= orderDetailRequest.getQuantity()) {
+                OrderDetail orderDetail = new OrderDetail();
                 orderDetail.setProduct(product);
                 orderDetail.setQuantity(orderDetailRequest.getQuantity());
                 orderDetail.setPrice(product.getPrice() * orderDetailRequest.getQuantity());
                 orderDetail.setOrder(order);
                 orderDetails.add(orderDetail);
+
+                // Giảm số lượng tồn kho
                 product.setStock(product.getStock() - orderDetailRequest.getQuantity());
                 productRepository.save(product);
+
                 total += orderDetail.getPrice();
             } else {
-                throw new RuntimeException("quantity is not enough");
+                throw new RuntimeException("Số lượng sản phẩm không đủ.");
             }
         }
-        order.setTotal(total);
+
+        // ✅ Tính tổng tiền với phí ship và discount (nếu có)
+        float discountValue = 0;
+        if (discountId != null) {
+            Discount discount = discountRepository.findById(discountId)
+                    .orElseThrow(() -> new RuntimeException("Mã giảm giá không hợp lệ."));
+            discountValue = discount.getDiscountValue(); // Giả sử discount tính bằng VNĐ
+        }
+
+        float finalTotal = total + SHIPPING_FEE - discountValue;
+        if (finalTotal < 0) {
+            finalTotal = 0; // Không cho phép tổng tiền âm
+        }
+
+        order.setTotal(finalTotal);
         Order newOrder = orderRepository.save(order);
-        return createURLPayment(newOrder);
+
+        // ✅ Xử lý thanh toán
+        if ("VNPay".equalsIgnoreCase(paymentMethod)) {
+            return createURLPayment(newOrder);
+        } else {
+            return "Đơn hàng đã được tạo thành công. Chờ xác nhận!";
+        }
     }
 
     public String createURLPayment(Order order) throws Exception {
@@ -76,6 +120,7 @@ public class OrderService {
         String vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
         String returnURL = "http://localhost:8080/?orderId=" + order.getId();
         String currCode = "VND";
+
         Map<String, String> vnpParams = new TreeMap<>();
         vnpParams.put("vnp_Version", "2.1.0");
         vnpParams.put("vnp_Command", "pay");
@@ -83,49 +128,34 @@ public class OrderService {
         vnpParams.put("vnp_Locale", "vn");
         vnpParams.put("vnp_CurrCode", currCode);
         vnpParams.put("vnp_TxnRef", orderId);
-        vnpParams.put("vnp_OrderInfo", "Thanh toan cho ma GD: " + orderId);
+        vnpParams.put("vnp_OrderInfo", "Thanh toán đơn hàng: " + orderId);
         vnpParams.put("vnp_OrderType", "other");
         vnpParams.put("vnp_Amount", (int) order.getTotal() + "00");
         vnpParams.put("vnp_ReturnUrl", returnURL);
         vnpParams.put("vnp_CreateDate", formattedCreateDate);
         vnpParams.put("vnp_IpAddr", "167.99.74.201");
-        StringBuilder signDataBuilder = new StringBuilder();
-        for (Map.Entry<String, String> entry : vnpParams.entrySet()) {
-            signDataBuilder.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8.toString()));
-            signDataBuilder.append("=");
-            signDataBuilder.append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.toString()));
-            signDataBuilder.append("&");
-        }
-        signDataBuilder.deleteCharAt(signDataBuilder.length() - 1); // Remove last '&'
 
-        String signData = signDataBuilder.toString();
+        String signData = vnpParams.entrySet().stream()
+                .map(e -> URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
+                .collect(Collectors.joining("&"));
+
         String signed = generateHMAC(secretKey, signData);
-
         vnpParams.put("vnp_SecureHash", signed);
 
-        StringBuilder urlBuilder = new StringBuilder(vnpUrl);
-        urlBuilder.append("?");
-        for (Map.Entry<String, String> entry : vnpParams.entrySet()) {
-            urlBuilder.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8.toString()));
-            urlBuilder.append("=");
-            urlBuilder.append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.toString()));
-            urlBuilder.append("&");
-        }
-        urlBuilder.deleteCharAt(urlBuilder.length() - 1); // Remove last '&'
-        return urlBuilder.toString();
+        return vnpUrl + "?" + signData + "&vnp_SecureHash=" + signed;
     }
 
-    private String generateHMAC(String secretKey, String signData) throws NoSuchAlgorithmException, InvalidKeyException {
-        Mac hmacSha512 = Mac.getInstance("HmacSHA512");
-        SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
-        hmacSha512.init(keySpec);
-        byte[] hmacBytes = hmacSha512.doFinal(signData.getBytes(StandardCharsets.UTF_8));
 
-        StringBuilder result = new StringBuilder();
-        for (byte b : hmacBytes) {
-            result.append(String.format("%02x", b));
-        }
-        return result.toString();
+    private String generateHMAC(String secretKey, String signData) throws NoSuchAlgorithmException, InvalidKeyException {
+        Mac mac = Mac.getInstance("HmacSHA512");
+        mac.init(new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA512"));
+
+        byte[] hmacBytes = mac.doFinal(signData.getBytes(StandardCharsets.UTF_8));
+
+        // Chuyển đổi byte[] -> hex string nhanh hơn
+        return IntStream.range(0, hmacBytes.length)
+                .mapToObj(i -> String.format("%02x", hmacBytes[i]))
+                .collect(Collectors.joining());
     }
 
     public List<Order> getOrdersByUser() {

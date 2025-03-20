@@ -19,13 +19,42 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long id = 0;
-    public LocalDateTime createAt;
+
+    public LocalDateTime createAt = LocalDateTime.now();
+
     public float total;
+
     public OrderStatusEnum status = OrderStatusEnum.IN_PROCESS;
+
     @ManyToOne
     @JoinColumn(name = "account_id")
     public Account account;
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     List<OrderDetail> orderDetails = new ArrayList<>();
 
+    // ✅ Thêm thông tin khách hàng
+    @Column(nullable = false)
+    public String phoneNumber;   // Bắt buộc nhập số điện thoại
+
+    @Column(nullable = false)
+    public String customerAddress; // Bắt buộc nhập địa chỉ
+
+    // ✅ Thông tin thanh toán
+    @Column(nullable = false)
+    public String paymentMethod;  // "VNPay", "Cash",...
+
+    public boolean paymentStatus = false; // false: chưa thanh toán, true: đã thanh toán
+
+    public String transactionId; // Mã giao dịch VNPay nếu có
+
+    // ✅ Thêm phí vận chuyển
+    public float shippingFee = 30000; // Default shipping fee (có thể thay đổi sau)
+
+    // ✅ Giảm giá (có thể null nếu không có discount)
+    @ManyToOne
+    @JoinColumn(name = "discount_id", nullable = true)
+    public Discount discount;
+
+    public float discountValue = 0; // Mặc định không có giảm giá
 }

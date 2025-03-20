@@ -59,9 +59,6 @@ public class Account implements UserDetails {
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
     @JsonIgnore
     Cart cart;
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
-    @JsonIgnore
-    List<Checkout> checkouts = new ArrayList<>();
 
 
     @Override
