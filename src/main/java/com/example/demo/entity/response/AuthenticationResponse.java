@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 public class AuthenticationResponse {
 
     private AccountDTO user;
-    private String token;
+    private String accessToken;
 
     public AuthenticationResponse(Account account, String token) {
         this.user = new AccountDTO(account); // Chuyển từ Account sang AccountDTO
-        this.token = token;
+        this.accessToken = token;
     }
 }
