@@ -1,5 +1,6 @@
 package com.example.demo.entity.response;
 
+import com.example.demo.dto.AccountDTO;
 import com.example.demo.entity.Account;
 import com.example.demo.enums.RoleEnum;
 import com.example.demo.enums.SkinTypeEnum;
@@ -8,18 +9,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class AuthenticationResponse {
-//    private Long id;
-//    private String email;
-//    private String fullName;
-//    private String phonenumber;
-//    private String address;
-//    private SkinTypeEnum skintypeEnum;
-//    private long point;
-    private Account user;
-//    private RoleEnum roleEnum;
-    private String accessToken;
 
+    private AccountDTO user;
+    private String token;
+
+    public AuthenticationResponse(Account account, String token) {
+        this.user = new AccountDTO(account); // Chuyển từ Account sang AccountDTO
+        this.token = token;
+    }
 }

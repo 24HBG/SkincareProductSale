@@ -63,18 +63,16 @@ public class AuthenticationService implements UserDetailsService {
                     )
             );
         } catch (Exception e) {
-            throw new RuntimeException("Wrong username or password"); // Dùng RuntimeException thay vì NullPointerException
+            throw new RuntimeException("Wrong username or password");
         }
 
         Account account = authenticationRepository.findByEmail(authenticationRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found")); // Bắt lỗi nếu email không tồn tại
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         String token = tokenService.generateToken(account);
 
-        // Trả về response
         return new AuthenticationResponse(account, token);
-    }
-    }
+    }}
 
 
 
